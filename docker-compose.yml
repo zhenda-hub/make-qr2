@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  backend2:
+    build: ./backend2
+    ports:
+      - "8003:8000"
+    volumes:
+      - ./backend2/app:/app/app
+  frontend:
+    build: ./frontend
+    user: "1000:1000" # 使用指定宿主机用户ID和组ID
+    # command: sh -c "tail -f /dev/null"  # 保持容器运行
+    ports:
+      - "5174:5173"
+    depends_on:
+      - backend2
+    volumes:
+      - ./frontend:/app
+    environment:
+      - VITE_API_URL=http://localhost:8003
