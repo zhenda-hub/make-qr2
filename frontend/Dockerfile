@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # 安装依赖
-RUN npm install
+RUN npm install && npm install element-plus
 
 # 设置热更新的环境变量
 ENV CHOKIDAR_USEPOLLING=true
