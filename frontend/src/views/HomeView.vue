@@ -73,7 +73,7 @@ const downloadQR = () => {
     </section>
 
     <!-- Quick QR Generator -->
-    <section class="quick-generator">
+    <!-- <section class="quick-generator">
       <div class="container">
         <h2>快速生成二维码</h2>
         <div class="card">
@@ -105,7 +105,7 @@ const downloadQR = () => {
           </div>
         </div>
       </div>
-    </section>
+    </section> -->
   </div>
 </template>
 
