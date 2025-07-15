@@ -22,6 +22,8 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+*.db
+sqlite/
 
 # Node
 node_modules/

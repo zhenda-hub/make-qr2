@@ -1,0 +1,712 @@
+  <!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QRCodeGen - 专业二维码生成工具</title>
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入 Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- 引入 Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <!-- 引入 QRCode.js -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/qrcode.min.js"></script>
+  
+  <!-- 配置 Tailwind -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#36CFC9',
+            accent: '#FF7D00',
+            dark: '#1D2129',
+            light: '#F2F3F5',
+            'neutral-100': '#F7F8FA',
+            'neutral-200': '#E5E6EB',
+            'neutral-300': '#C9CDD4',
+            'neutral-400': '#86909C',
+            'neutral-500': '#4E5969',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .card-hover {
+        @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+      }
+      .btn-primary {
+        @apply bg-primary hover:bg-primary/90 text-white font-medium rounded-lg px-5 py-2.5 transition-all duration-300 shadow-md hover:shadow-lg;
+      }
+      .btn-secondary {
+        @apply bg-white border border-neutral-200 hover:border-primary text-neutral-500 font-medium rounded-lg px-5 py-2.5 transition-all duration-300 hover:text-primary;
+      }
+      .input-primary {
+        @apply bg-neutral-100 border border-neutral-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-300;
+      }
+    }
+  </style>
+</head>
+
+<body class="font-inter bg-white text-dark antialiased">
+  <!-- 导航栏 - 固定在顶部，滚动时变化样式 -->
+  <header id="navbar" class="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md z-50 transition-all duration-300 shadow-sm">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16 md:h-20">
+        <!-- Logo -->
+        <div class="flex items-center space-x-2">
+          <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+            <i class="fa fa-qrcode text-white text-xl"></i>
+          </div>
+          <span class="text-xl font-bold text-dark">QRCodeGen</span>
+        </div>
+        
+        <!-- 桌面导航 -->
+        <nav class="hidden md:flex items-center space-x-8">
+          <a href="#home" class="text-neutral-500 hover:text-primary font-medium transition-colors duration-200">首页</a>
+          <a href="#customize" class="text-neutral-500 hover:text-primary font-medium transition-colors duration-200">自定义网页</a>
+          <a href="#generate" class="text-neutral-500 hover:text-primary font-medium transition-colors duration-200">生成二维码</a>
+          <a href="#features" class="text-neutral-500 hover:text-primary font-medium transition-colors duration-200">功能特点</a>
+        </nav>
+        
+        <!-- 用户操作 -->
+        <div class="flex items-center space-x-4">
+          <!-- 移动端菜单按钮 -->
+          <button id="menu-toggle" class="md:hidden text-neutral-500 hover:text-primary transition-colors duration-200">
+            <i class="fa fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 移动端导航菜单 -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-neutral-200 shadow-lg">
+      <div class="container mx-auto px-4 py-3 space-y-3">
+        <a href="#home" class="block py-2 text-neutral-500 hover:text-primary font-medium transition-colors duration-200">首页</a>
+        <a href="#customize" class="block py-2 text-neutral-500 hover:text-primary font-medium transition-colors duration-200">自定义网页</a>
+        <a href="#generate" class="block py-2 text-neutral-500 hover:text-primary font-medium transition-colors duration-200">生成二维码</a>
+        <a href="#features" class="block py-2 text-neutral-500 hover:text-primary font-medium transition-colors duration-200">功能特点</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="pt-16 md:pt-20">
+    <!-- 首页/英雄区 -->
+    <section id="home" class="relative bg-gradient-to-br from-primary/5 to-secondary/5 py-20 md:py-32 overflow-hidden">
+      <div class="absolute top-0 right-0 w-full h-full opacity-10">
+        <div class="absolute top-10 right-10 w-64 h-64 rounded-full bg-primary blur-3xl"></div>
+        <div class="absolute bottom-10 left-10 w-80 h-80 rounded-full bg-secondary blur-3xl"></div>
+      </div>
+      
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div class="max-w-4xl mx-auto text-center">
+          <h1 class="text-[clamp(2.5rem,5vw,4rem)] font-bold leading-tight text-dark mb-6">
+            简单高效的<span class="text-primary">二维码生成</span>与<span class="text-primary">自定义网页</span>解决方案
+          </h1>
+          <p class="text-[clamp(1rem,2vw,1.25rem)] text-neutral-500 mb-10 max-w-3xl mx-auto">
+            轻松创建专业二维码，自定义专属落地页，提升品牌形象与用户体验。
+            一站式服务，满足您的所有营销需求。
+          </p>
+          <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <button class="btn-primary flex items-center justify-center gap-2">
+              <i class="fa fa-rocket"></i> 开始免费体验
+            </button>
+            <button class="btn-secondary flex items-center justify-center gap-2">
+              <i class="fa fa-play-circle-o"></i> 观看演示
+            </button>
+          </div>
+        </div>
+        
+        <!-- 主视觉图 -->
+        <div class="mt-16 md:mt-24 relative">
+          <div class="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3xl transform rotate-2"></div>
+          <div class="relative bg-white rounded-3xl shadow-xl overflow-hidden">
+            <img src="https://picsum.photos/seed/qrcode1/1200/600" alt="QRCodeGen 主界面展示" class="w-full h-auto">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end">
+              <div class="p-6 md:p-10 text-white">
+                <h3 class="text-xl md:text-2xl font-bold mb-2">一站式二维码与网页定制平台</h3>
+                <p class="text-white/80 max-w-2xl">简单几步，创建专业二维码与个性化网页，提升品牌曝光度与用户转化率</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 自定义网页功能区 -->
+    <section id="customize" class="py-20 md:py-32 bg-white">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-[clamp(1.75rem,3vw,2.5rem)] font-bold text-dark mb-4">
+            强大的<span class="text-primary">自定义网页</span>编辑器
+          </h2>
+          <p class="text-lg text-neutral-500 max-w-3xl mx-auto">
+            无需任何代码基础，轻松创建专业级落地页。添加图片、文字、视频，打造您的专属品牌页面。
+          </p>
+        </div>
+        
+        <!-- 功能演示 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+          <!-- 功能列表 -->
+          <div class="space-y-8">
+            <div class="bg-neutral-100 rounded-xl p-6 card-hover">
+              <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <i class="fa fa-file-text-o text-primary text-xl"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">页面管理</h3>
+              <p class="text-neutral-500">轻松创建、编辑、删除和组织您的自定义页面，支持批量操作和版本历史。</p>
+            </div>
+            
+            <div class="bg-neutral-100 rounded-xl p-6 card-hover">
+              <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <i class="fa fa-header text-primary text-xl"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">自定义标题</h3>
+              <p class="text-neutral-500">设置吸引人的页面标题和副标题，选择多种字体和样式，突出品牌特色。</p>
+            </div>
+            
+            <div class="bg-neutral-100 rounded-xl p-6 card-hover">
+              <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <i class="fa fa-picture-o text-primary text-xl"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">多媒体内容</h3>
+              <p class="text-neutral-500">添加高质量图片、视频和富文本内容，创建引人入胜的用户体验。</p>
+            </div>
+            
+            <div class="bg-neutral-100 rounded-xl p-6 card-hover">
+              <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <i class="fa fa-magic text-primary text-xl"></i>
+              </div>
+              <h3 class="text-xl font-semibold mb-2">拖放式编辑</h3>
+              <p class="text-neutral-500">直观的拖放界面，让您可以轻松调整页面布局和元素位置，所见即所得。</p>
+            </div>
+          </div>
+          
+          <!-- 主演示图 -->
+          <div class="lg:col-span-2 bg-white rounded-2xl shadow-xl overflow-hidden border border-neutral-200">
+            <div class="bg-neutral-100 p-4 flex items-center justify-between border-b border-neutral-200">
+              <div class="flex space-x-2">
+                <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <div class="w-3 h-3 rounded-full bg-green-400"></div>
+              </div>
+              <div class="text-sm text-neutral-500">自定义网页编辑器</div>
+              <div class="flex space-x-2">
+                <button class="w-5 h-5 flex items-center justify-center text-neutral-500 hover:text-dark">
+                  <i class="fa fa-minus"></i>
+                </button>
+                <button class="w-5 h-5 flex items-center justify-center text-neutral-500 hover:text-dark">
+                  <i class="fa fa-expand"></i>
+                </button>
+                <button class="w-5 h-5 flex items-center justify-center text-neutral-500 hover:text-dark">
+                  <i class="fa fa-times"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="flex h-[600px]">
+              <!-- 侧边栏 -->
+              <div class="w-64 bg-white border-r border-neutral-200">
+                <div class="p-4 border-b border-neutral-200">
+                  <h4 class="font-medium">页面列表</h4>
+                </div>
+                <div class="p-3 space-y-2">
+                  <button class="w-full flex items-center justify-between p-2 rounded-lg bg-primary/10 text-primary">
+                    <span class="flex items-center gap-2">
+                      <i class="fa fa-file-o"></i>
+                      <span>首页</span>
+                    </span>
+                    <div class="flex gap-1">
+                      <i class="fa fa-pencil text-xs"></i>
+                      <i class="fa fa-trash text-xs"></i>
+                    </div>
+                  </button>
+                  <button class="w-full flex items-center justify-between p-2 rounded-lg hover:bg-neutral-100 text-neutral-500 hover:text-dark">
+                    <span class="flex items-center gap-2">
+                      <i class="fa fa-file-o"></i>
+                      <span>产品介绍</span>
+                    </span>
+                    <div class="flex gap-1">
+                      <i class="fa fa-pencil text-xs"></i>
+                      <i class="fa fa-trash text-xs"></i>
+                    </div>
+                  </button>
+                  <button class="w-full flex items-center justify-between p-2 rounded-lg hover:bg-neutral-100 text-neutral-500 hover:text-dark">
+                    <span class="flex items-center gap-2">
+                      <i class="fa fa-file-o"></i>
+                      <span>联系方式</span>
+                    </span>
+                    <div class="flex gap-1">
+                      <i class="fa fa-pencil text-xs"></i>
+                      <i class="fa fa-trash text-xs"></i>
+                    </div>
+                  </button>
+                  <button class="w-full flex items-center justify-between p-2 rounded-lg hover:bg-neutral-100 text-neutral-500 hover:text-dark">
+                    <span class="flex items-center gap-2">
+                      <i class="fa fa-file-o"></i>
+                      <span>促销活动</span>
+                    </span>
+                    <div class="flex gap-1">
+                      <i class="fa fa-pencil text-xs"></i>
+                      <i class="fa fa-trash text-xs"></i>
+                    </div>
+                  </button>
+                  <button class="w-full flex items-center p-2 rounded-lg hover:bg-neutral-100 text-primary">
+                    <i class="fa fa-plus"></i>
+                    <span>新建页面</span>
+                  </button>
+                </div>
+                
+                <div class="p-4 border-t border-b border-neutral-200">
+                  <h4 class="font-medium">组件库</h4>
+                </div>
+                <div class="p-3 grid grid-cols-2 gap-2">
+                  <button class="flex flex-col items-center justify-center p-3 rounded-lg bg-neutral-100 hover:bg-neutral-200">
+                    <i class="fa fa-header text-lg mb-1"></i>
+                    <span class="text-xs">标题</span>
+                  </button>
+                  <button class="flex flex-col items-center justify-center p-3 rounded-lg bg-neutral-100 hover:bg-neutral-200">
+                    <i class="fa fa-paragraph text-lg mb-1"></i>
+                    <span class="text-xs">文本</span>
+                  </button>
+                  <button class="flex flex-col items-center justify-center p-3 rounded-lg bg-neutral-100 hover:bg-neutral-200">
+                    <i class="fa fa-picture-o text-lg mb-1"></i>
+                    <span class="text-xs">图片</span>
+                  </button>
+                  <button class="flex flex-col items-center justify-center p-3 rounded-lg bg-neutral-100 hover:bg-neutral-200">
+                    <i class="fa fa-film text-lg mb-1"></i>
+                    <span class="text-xs">视频</span>
+                  </button>
+                  <button class="flex flex-col items-center justify-center p-3 rounded-lg bg-neutral-100 hover:bg-neutral-200">
+                    <i class="fa fa-list-ul text-lg mb-1"></i>
+                    <span class="text-xs">列表</span>
+                  </button>
+                  <button class="flex flex-col items-center justify-center p-3 rounded-lg bg-neutral-100 hover:bg-neutral-200">
+                    <i class="fa fa-map-marker text-lg mb-1"></i>
+                    <span class="text-xs">地图</span>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- 编辑区 -->
+              <div class="flex-1 bg-neutral-50 overflow-y-auto">
+                <div class="p-8 max-w-2xl mx-auto">
+                  <!-- 标题组件 -->
+                  <div class="mb-8 bg-white p-4 rounded-lg shadow-sm border border-neutral-200 cursor-move">
+                    <div class="flex justify-between items-center mb-2">
+                      <span class="text-xs text-neutral-400">标题组件</span>
+                      <div class="flex gap-2">
+                        <i class="fa fa-arrows text-xs text-neutral-400"></i>
+                        <i class="fa fa-pencil text-xs text-neutral-400"></i>
+                      </div>
+                    </div>
+                    <h2 class="text-3xl font-bold text-center">欢迎来到我们的品牌世界</h2>
+                    <p class="text-center text-neutral-500 mt-2">探索我们的产品和服务，体验非凡品质</p>
+                  </div>
+                  
+                  <!-- 图片组件 -->
+                  <div class="mb-8 bg-white p-4 rounded-lg shadow-sm border border-neutral-200 cursor-move">
+                    <div class="flex justify-between items-center mb-2">
+                      <span class="text-xs text-neutral-400">图片组件</span>
+                      <div class="flex gap-2">
+                        <i class="fa fa-arrows text-xs text-neutral-400"></i>
+                        <i class="fa fa-pencil text-xs text-neutral-400"></i>
+                      </div>
+                    </div>
+                    <img src="https://picsum.photos/seed/qrcode2/800/400" alt="品牌展示图片" class="w-full h-auto rounded-lg">
+                  </div>
+                  
+                  <!-- 文本组件 -->
+                  <div class="mb-8 bg-white p-4 rounded-lg shadow-sm border border-neutral-200 cursor-move">
+                    <div class="flex justify-between items-center mb-2">
+                      <span class="text-xs text-neutral-400">文本组件</span>
+                      <div class="flex gap-2">
+                        <i class="fa fa-arrows text-xs text-neutral-400"></i>
+                        <i class="fa fa-pencil text-xs text-neutral-400"></i>
+                      </div>
+                    </div>
+                    <p class="text-neutral-700">
+                      我们是一家致力于创新和品质的公司，提供全方位的产品和服务解决方案。
+                      无论您是个人用户还是企业客户，我们都能满足您的需求，帮助您实现目标。
+                    </p>
+                    <p class="text-neutral-700 mt-4">
+                      我们的团队由经验丰富的专业人士组成，他们热情、专注，始终以客户为中心，
+                      为您提供最优质的服务体验。
+                    </p>
+                  </div>
+                  
+                  <!-- 视频组件 -->
+                  <div class="mb-8 bg-white p-4 rounded-lg shadow-sm border border-neutral-200 cursor-move">
+                    <div class="flex justify-between items-center mb-2">
+                      <span class="text-xs text-neutral-400">视频组件</span>
+                      <div class="flex gap-2">
+                        <i class="fa fa-arrows text-xs text-neutral-400"></i>
+                        <i class="fa fa-pencil text-xs text-neutral-400"></i>
+                      </div>
+                    </div>
+                    <div class="w-full h-64 bg-neutral-800 rounded-lg flex items-center justify-center">
+                      <i class="fa fa-play-circle-o text-white text-5xl"></i>
+                      <span class="text-white ml-2">视频预览</span>
+                    </div>
+                  </div>
+                  
+                  <!-- 添加组件区域 -->
+                  <div class="flex justify-center">
+                    <button class="flex items-center gap-2 text-primary hover:bg-primary/10 p-2 rounded-lg">
+                      <i class="fa fa-plus-circle"></i>
+                      <span>添加新组件</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 属性面板 -->
+              <div class="w-64 bg-white border-l border-neutral-200">
+                <div class="p-4 border-b border-neutral-200">
+                  <h4 class="font-medium">属性设置</h4>
+                </div>
+                <div class="p-4 space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">页面标题</label>
+                    <input type="text" value="首页" class="input-primary w-full">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">页面描述</label>
+                    <textarea class="input-primary w-full h-20">探索我们的品牌世界，了解最新产品和服务</textarea>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">背景颜色</label>
+                    <div class="flex gap-2">
+                      <button class="w-6 h-6 rounded-full bg-white border border-neutral-200"></button>
+                      <button class="w-6 h-6 rounded-full bg-neutral-50 border border-neutral-200"></button>
+                      <button class="w-6 h-6 rounded-full bg-primary/5 border border-primary/20"></button>
+                      <button class="w-6 h-6 rounded-full bg-secondary/5 border border-secondary/20"></button>
+                      <button class="w-6 h-6 rounded-full bg-accent/5 border border-accent/20"></button>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">字体</label>
+                    <select class="input-primary w-full">
+                      <option>Inter</option>
+                      <option>Roboto</option>
+                      <option>Open Sans</option>
+                      <option>Montserrat</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">页面模板</label>
+                    <select class="input-primary w-full">
+                      <option>默认模板</option>
+                      <option>产品展示</option>
+                      <option>服务介绍</option>
+                      <option>活动宣传</option>
+                      <option>个人名片</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="p-4 border-t border-b border-neutral-200">
+                  <h4 class="font-medium">SEO 设置</h4>
+                </div>
+                <div class="p-4 space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">SEO 标题</label>
+                    <input type="text" value="品牌官方网站" class="input-primary w-full">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">关键词</label>
+                    <input type="text" value="品牌,产品,服务,解决方案" class="input-primary w-full">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-1">描述</label>
+                    <textarea class="input-primary w-full h-20">了解我们的品牌故事，探索创新产品和专业服务，为您提供全方位的解决方案</textarea>
+                  </div>
+                </div>
+                
+                <div class="p-4 sticky bottom-0 border-t border-neutral-200">
+                  <button class="btn-primary w-full mb-2">保存页面</button>
+                  <button class="btn-secondary w-full">预览</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 二维码生成功能区 -->
+    <section id="generate" class="py-20 md:py-32 bg-neutral-50">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-[clamp(1.75rem,3vw,2.5rem)] font-bold text-dark mb-4">
+            简单高效的<span class="text-primary">二维码生成</span>工具
+          </h2>
+          <p class="text-lg text-neutral-500 max-w-3xl mx-auto">
+            将任何网址、文本或信息转换为高质量二维码，支持自定义设计和下载，满足您的各种需求。
+          </p>
+        </div>
+        
+        <!-- 生成器界面 -->
+        <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-neutral-200">
+          <div class="grid grid-cols-1 lg:grid-cols-2">
+            <!-- 输入区 -->
+            <div class="p-8 border-b lg:border-b-0 lg:border-r border-neutral-200">
+              <h3 class="text-xl font-semibold mb-6">创建您的二维码</h3>
+              
+              <div class="space-y-6">
+                <!-- 输入网址 -->
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 mb-1">输入网址或文本</label>
+                  <input id="qr-url" type="text" placeholder="https://www.example.com" class="input-primary w-full" value="https://www.qrcodegen.com">
+                </div>
+                
+                <!-- 二维码尺寸 -->
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 mb-1">二维码尺寸</label>
+                  <div class="flex items-center gap-4">
+                    <input id="qr-size" type="range" min="128" max="512" step="32" value="256" class="w-full accent-primary">
+                    <span id="size-value" class="text-neutral-500 min-w-[50px]">256px</span>
+                  </div>
+                </div>
+                
+                <!-- 纠错级别 -->
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 mb-1">纠错级别</label>
+                  <div class="grid grid-cols-2 gap-3">
+                    <label class="flex items-center p-3 border border-neutral-200 rounded-lg cursor-pointer hover:bg-neutral-50">
+                      <input type="radio" name="error-correction" value="L" checked class="mr-2 accent-primary">
+                      <span>低 (7%)</span>
+                    </label>
+                    <label class="flex items-center p-3 border border-neutral-200 rounded-lg cursor-pointer hover:bg-neutral-50">
+                      <input type="radio" name="error-correction" value="M" class="mr-2 accent-primary">
+                      <span>中 (15%)</span>
+                    </label>
+                    <label class="flex items-center p-3 border border-neutral-200 rounded-lg cursor-pointer hover:bg-neutral-50">
+                      <input type="radio" name="error-correction" value="Q" class="mr-2 accent-primary">
+                      <span>较高 (25%)</span>
+                    </label>
+                    <label class="flex items-center p-3 border border-neutral-200 rounded-lg cursor-pointer hover:bg-neutral-50">
+                      <input type="radio" name="error-correction" value="H" class="mr-2 accent-primary">
+                      <span>高 (30%)</span>
+                    </label>
+                  </div>
+                </div>
+                
+                <!-- 颜色设置 -->
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 mb-1">颜色设置</label>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-xs text-neutral-500 mb-1">前景色</label>
+                      <div class="flex items-center gap-2">
+                        <input type="color" id="foreground-color" value="#165DFF" class="w-8 h-8 border-0 rounded cursor-pointer">
+                        <input type="text" id="foreground-color-text" value="#165DFF" class="input-primary flex-1">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-xs text-neutral-500 mb-1">背景色</label>
+                      <div class="flex items-center gap-2">
+                        <input type="color" id="background-color" value="#FFFFFF" class="w-8 h-8 border-0 rounded cursor-pointer">
+                        <input type="text" id="background-color-text" value="#FFFFFF" class="input-primary flex-1">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 生成按钮 -->
+                <div>
+                  <button id="generate-qr" class="btn-primary w-full flex items-center justify-center gap-2">
+                    <i class="fa fa-qrcode"></i>
+                    生成二维码
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 预览区 -->
+            <div class="p-8 flex flex-col items-center justify-center">
+              <h3 class="text-xl font-semibold mb-6">二维码预览</h3>
+              
+              <div class="bg-white p-6 rounded-xl shadow-md border border-neutral-200 mb-6">
+                <div id="qrcode-container" class="w-64 h-64 flex items-center justify-center bg-white">
+                  <!-- 二维码将在这里生成 -->
+                  <div id="qrcode" class="w-full h-full flex items-center justify-center">
+                    <div class="w-40 h-40 border-2 border-dashed border-neutral-300 rounded-lg flex items-center justify-center flex-col text-neutral-400">
+                      <i class="fa fa-qrcode text-3xl mb-2"></i>
+                      <span class="text-sm">点击生成二维码</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 下载选项 -->
+              <div class="grid grid-cols-2 gap-4 w-full max-w-md">
+                <button id="download-png" class="btn-primary flex items-center justify-center gap-2">
+                  <i class="fa fa-download"></i>
+                  下载 PNG
+                </button>
+                <button id="download-svg" class="btn-secondary flex items-center justify-center gap-2">
+                  <i class="fa fa-download"></i>
+                  下载 SVG
+                </button>
+              </div>
+              
+              <!-- 扫描提示 -->
+              <div class="mt-8 text-center text-sm text-neutral-500">
+                <p>使用手机扫描二维码测试效果</p>
+                <div class="mt-2 flex justify-center gap-4">
+                  <img src="https://picsum.photos/seed/scan1/120/120" alt="扫描示例1" class="w-24 h-24 rounded-lg shadow-sm">
+                  <img src="https://picsum.photos/seed/scan2/120/120" alt="扫描示例2" class="w-24 h-24 rounded-lg shadow-sm">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 功能特点 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200 card-hover">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <i class="fa fa-bolt text-primary text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">高速生成</h3>
+            <p class="text-neutral-500">瞬间将您的内容转换为高质量二维码，无需等待。</p>
+          </div>
+          
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200 card-hover">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <i class="fa fa-paint-brush text-primary text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">自定义设计</h3>
+            <p class="text-neutral-500">丰富的自定义选项，让您的二维码独一无二，与品牌风格一致。</p>
+          </div>
+          
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200 card-hover">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <i class="fa fa-mobile text-primary text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">全平台兼容</h3>
+            <p class="text-neutral-500">生成的二维码可在任何设备上扫描，确保最佳用户体验。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 功能特点区 -->
+    <section id="features" class="py-20 md:py-32 bg-white">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-[clamp(1.75rem,3vw,2.5rem)] font-bold text-dark mb-4">
+            强大功能<span class="text-primary">助力</span>业务增长
+          </h2>
+          <p class="text-lg text-neutral-500 max-w-3xl mx-auto">
+            我们提供全面的二维码和自定义网页解决方案，满足您的各种营销需求。
+          </p>
+        </div>
+        
+        <!-- 特点列表 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="bg-neutral-50 p-6 rounded-xl shadow-sm border border-neutral-200 card-hover">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <i class="fa fa-line-chart text-primary text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">扫描数据分析</h3>
+            <p class="text-neutral-500">实时监控二维码扫描数据，了解用户行为和来源，优化营销策略。</p>
+          </div>
+          
+          <div class="bg-neutral-50 p-6 rounded-xl shadow-sm border border-neutral-200 card-hover">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <i class="fa fa-link text-primary text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">动态二维码</h3>
+            <p class="text-neutral-500">随时更改二维码指向的内容，无需重新打印，保持信息最新。</p>
+          </div>
+          
+          <div class="bg-neutral-50 p-6 rounded-xl shadow-sm border border-neutral-200 card-hover">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <i class="fa fa-cloud text-primary text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">云存储管理</h3>
+            <p class="text-neutral-500">安全存储所有二维码和网页，随时随地访问和管理您的项目。</p>
+          </div>
+          
+          <div class="bg-neutral-50 p-6 rounded-xl shadow-sm border border-neutral-200 card-hover">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <i class="fa fa-mobile text-primary text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">移动响应式</h3>
+            <p class="text-neutral-500">所有自定义网页均自动适配各种移动设备，提供最佳用户体验。</p>
+          </div>
+          
+          <div class="bg-neutral-50 p-6 rounded-xl shadow-sm border border-neutral-200 card-hover">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <i class="fa fa-lock text-primary text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">安全可靠</h3>
+            <p class="text-neutral-500">企业级安全保障，保护您的品牌和用户数据，确保信息安全。</p>
+          </div>
+          
+          <div class="bg-neutral-50 p-6 rounded-xl shadow-sm border border-neutral-200 card-hover">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <i class="fa fa-users text-primary text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">团队协作</h3>
+            <p class="text-neutral-500">多人协作编辑和管理，设置不同权限，提高工作效率。</p>
+          </div>
+        </div>
+        
+        <!-- 数据统计 -->
+        <div class="mt-20 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl p-8 md:p-12">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="text-center">
+              <div class="text-4xl md:text-5xl font-bold text-primary mb-2" id="counter-users">1,200,000+</div>
+              <p class="text-neutral-500">活跃用户</p>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl md:text-5xl font-bold text-primary mb-2" id="counter-qrcodes">5,800,000+</div>
+              <p class="text-neutral-500">生成二维码</p>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl md:text-5xl font-bold text-primary mb-2" id="counter-pages">2,400,000+</div>
+              <p class="text-neutral-500">自定义网页</p>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl md:text-5xl font-bold text-primary mb-2" id="counter-scans">250,000,000+</div>
+              <p class="text-neutral-500">二维码扫描</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 常见问题 -->
+    <section class="py-20 md:py-32 bg-white">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-[clamp(1.75rem,3vw,2.5rem)] font-bold text-dark mb-4">
+            常见<span class="text-primary">问题</span>
+          </h2>
+          <p class="text-lg text-neutral-500 max-w-3xl mx-auto">
+            以下是用户经常咨询的问题，如果您有其他疑问，欢迎联系我们的客服团队。
+          </p>
+        </div>
+        
+        <div class="max-w-3xl mx-auto space-y-4">
+          <!-- FAQ 项目 -->
+          <div class="border border-neutral-200 rounded-lg overflow-hidden">
+            <button class="faq-toggle w-full flex items-center justify-between p-5 text-left bg-white hover:bg
