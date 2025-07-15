@@ -1,20 +1,23 @@
 version: '3.8'
 
 services:
-  backend2:
-    build: ./backend2
+  backend:
+    build: ./backend
     ports:
       - "8003:8000"
     volumes:
-      - ./backend2/app:/app/app
+      - ./backend/app:/app/app
+      - ./backend/sqlite:/var/lib/sqlite
+    environment:
+      - SQLALCHEMY_DATABASE_URL=sqlite:////var/lib/sqlite/sql_app.db
   frontend:
     build: ./frontend
-    user: "1000:1000" # 使用指定宿主机用户ID和组ID
+    user: "1000:1000"
     # command: sh -c "tail -f /dev/null"  # 保持容器运行
     ports:
       - "5174:5173"
     depends_on:
-      - backend2
+      - backend
     volumes:
       - ./frontend:/app
     environment:
